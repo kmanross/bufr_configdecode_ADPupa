@@ -23,6 +23,7 @@ CPLAT=linux
 SRC=../src
 LIB=../lib
 EXE=../exe
+INSTALL=.
 
 #  different platforms use different link name protocols
 #  -----------------------------------------------------
@@ -36,73 +37,40 @@ fflag=""
 
 if [ $CPLAT = linux ]
 then
-   openrb=openrb_
-   openwb=openwb_
-   crdbfr=crdbufr_
-   cwrbfr=cwrbufr_
-   lenmsg=lenm_
-   ff=g95
-
-   fflag="-fno-second-underscore -fsloppy-char -w"
-#   fflag="-fno-second-underscore -fsloppy-char -ftrace=frame -w"
-#   fflag="-fno-second-underscore -fbounds-check -w"
-#   fflag="-fno-second-underscore -w"
-#
-   cc=gcc
-   cflag="-DUNDERSCORE -w"
-elif [ $CPLAT = sgi ]
-then
-   openrb=openrb_
-   openwb=openwb_
-   crdbfr=crdbufr_
-   cwrbfr=cwrbufr_
-   lenmsg=lenm_
-   ff=f77
-   cc=cc
-   cflag=-DUNDERSCORE
-elif [ $CPLAT = aix ]
-then
-   openrb=openrb
-   openwb=openwb
-   crdbfr=crdbufr
-   cwrbfr=cwrbufr
-   lenmsg=lenm
-   ff=f77
-   cc=cc
-elif [ $CPLAT = sun ]
-then
-   openrb=openrb_
-   openwb=openwb_
-   crdbfr=crdbufr_
-   cwrbfr=cwrbufr_
-   lenmsg=lenm_
-   ff=f77
-   cc=cc
-   cflag=-DUNDERSCORE 
+   export FC=gfortran
+   export CC=gcc
+   fflag=" -O3 -DUNDERSCORE -fno-second-underscore -w"
+   cflag=" -O3 -DUNDERSCORE -w"
 fi
 
 #  Compile and archive the Bufr Library
 #  ------------------------------------
-
-$cc $cflag -c $cflag $LIB/*.c
-$ff $fflag -c $LIB/*.f
-
-ar crv $LIB/bufrlib.a *.o
+echo "Compiling BUFRLIB Library..."
+cd $LIB
+if [ -e bufrlib.a ]
+then
+  rm bufrlib.a
+fi
+$LIB/makebufrlib.sh
+cd $INSTALL
 
 #  Compile the decode programs
 #  ---------------------------------------
  
-$ff $fflag -c $SRC/bufrupprair.f
-$ff $fflag -c $SRC/dumpbufr.f
+echo "Compiling bufr_configdecode_ADPupa programs..."
+$FC $fflag -c $SRC/dumpbufr.f
+$FC $fflag -c $SRC/bufrupprair.f
  
 #  link and load the executables
 #  -----------------------------
 
-
-$ff $fflag -o $EXE/bufrupprair.x bufrupprair.o $LIB/bufrlib.a
-$ff $fflag -o $EXE/dumpbufr.x dumpbufr.o $LIB/bufrlib.a
+echo "Linking..."
+$FC $fflag -o $EXE/dumpbufr.x dumpbufr.o $LIB/bufrlib.a
+$FC $fflag -o $EXE/bufrupprair.x bufrupprair.o $LIB/bufrlib.a
 
 #  clean up
 #  --------
 
 rm -f *.o
+
+echo "Finished."
