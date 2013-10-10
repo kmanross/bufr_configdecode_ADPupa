@@ -1000,7 +1000,11 @@ C
             EXIT DORECS         ! GO PRINT STATISTICS FOR THIS FILE'S PROCESSING
           ENDIF
 C
-          CODE = IUPBS1(MBAY,33)
+C          IUPBS1 is obsolete in BUFRLIB 10.2.3. Only needed here for
+C          internal diagnostics, and unknown what it really provides so
+C          commenting out. SEE ALSO, commented out below references to
+C          'CODE' as well  <manross@ucar.edu> 20131008
+C          CODE = IUPBS1(MBAY,33)
 C
           RECORDS = RECORDS + 1
 c
@@ -1009,10 +1013,12 @@ c
           MODREC = MOD(RECORDS,I500)
           IF (DODIAG.EQ.'y')  THEN
             IF (RECORDS.LE.50.OR.MODREC.EQ.1)  THEN
-              WRITE (IDUNIT,9120)  RECORDS, RECDATE, CSUBSET, CODE
+C              WRITE (IDUNIT,9120)  RECORDS, RECDATE, CSUBSET, CODE
+              WRITE (IDUNIT,9120)  RECORDS, RECDATE, CSUBSET
 9120          FORMAT (/,1X,111('#'),
      +          /,1X,'BUFR RECORD ',I8,' WITH RECDATE ',I10,
-     +          ' OPENED,  CSUBSET ',A8,'  CODE',I8)
+C     +          ' OPENED,  CSUBSET ',A8,'  CODE',I8)
+     +          ' OPENED,  CSUBSET ',A8)
             ENDIF
           ENDIF
 C
