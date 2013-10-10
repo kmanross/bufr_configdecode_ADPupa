@@ -1,4 +1,4 @@
-C ##############################################################################                 
+C ##############################################################################                    
 C #     PROGRAM BUFRUPA                                                        #
 C #                                                                            #
 C #      A BUFR INPUT DATA FILE CONTAINS A SERIES OF "MESSAGES" (WHICH ARE     #
@@ -13,17 +13,17 @@ C                                 !   EXECUTION OR PERFORMANCE DIAGNOSTICS
 C
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         PARAMETER  ( IIUNIT=11 )  ! BUFR INPUT FILE UNIT
-        CHARACTER*1024  DIRIN,  DEFIN
-        INTEGER         INHALE
+        CHARACTER*128  DIRIN,  DEFIN
+        INTEGER        INHALE
         DATA DEFIN(01:10)   /'../bufrobs'/  ! DEFAULT INPUT DIRECTORY
 C
 C       USERS CAN CHANGE THE DEFAULT INPUT DIRECTORY THROUGH THE CONFIGURATION
 C         FILE BY GIVING THEIR COMPLETE PATHNAME TO WHATEVER.
 C
-        PARAMETER  ( INKSTN=40000)  ! MAXIMUM NUMBER OF INPUT FILES
+        PARAMETER  ( INKSTN=1500 )  ! MAXIMUM NUMBER OF INPUT FILES
         PARAMETER  ( LENINMX=64 )   ! MAXIMUM LENGTH OF INPUT BASE FILE NAMES
         CHARACTER*64 INFILES(INKSTN)! 64 WOULD PICK UP ".le" EXTENSION AND MORE
-        CHARACTER*1088 INFILE       ! STRING MUST HOLD DIRIN STRING (<=1024) PLUS 
+        CHARACTER*192 INFILE        ! STRING MUST HOLD DIRIN STRING (<=128) PLUS 
 C                                   !   INFILES(N) STRING (<=64)          
         CHARACTER*64 NOFILE 
 C
@@ -41,7 +41,7 @@ C         FORMAT)
 C
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         PARAMETER  ( IPUNIT=21 )  ! PRINT (AKA DUMP OR OUTPUT) FILE UNIT 
-        CHARACTER*1024  DIROUT, DEFOUT
+        CHARACTER*128  DIROUT, DEFOUT
         INTEGER      EXHALE
         DATA  DEFOUT(01:10) /'../textobs'/  ! DEFAULT OUTPUT DIRECTORY
 C
@@ -111,11 +111,11 @@ C
 C
 C       RECORD AND REPORT COUNTERS
 C
-        INTEGER        RECORDS, RECSREJ, RECSACC, RECREPS, REPORTS
-        INTEGER        REPSACC, REPSREJ
+        INTEGER      RECORDS, RECSREJ, RECSACC, RECREPS, REPORTS
+        INTEGER      REPSACC, REPSREJ
 C
         CHARACTER*1    IFILTER
-        CHARACTER*8    OBSGET(1000)
+        CHARACTER*8    OBSGET(50)
         CHARACTER*1    IOBSDO
 C
         CHARACTER*1    DATEDO
@@ -129,10 +129,9 @@ C
         CHARACTER*10   XN      ! FOR BLANK FILLING IN MNEMONIC USAGE
         DATA XN      / '          ' /
         CHARACTER*1    USEACID, HAVACID ! FOR SPECIAL AIRCRAFT ID USAGE
-        DATA USEACID / 'n' /   ! IF 'y', THEN WHEN A8RPID IS MISSING, 
+        DATA USEACID / 'y' /   ! IF 'y', THEN WHEN A8RPID IS MISSING, 
 C                              !   AND ACID IS AVAILABLE, USE ACID
 C                              ! CHANGE THIS TO 'n' TO PRESERVE A8RPID
-C                              ! TURNED OFF REPLACEMENT ON 2011.07.06, PER STEVE'S REQUEST
         CHARACTER*1    LLDO
         CHARACTER*1    LLWRAP
 C
@@ -163,12 +162,18 @@ C
 C
         CHARACTER*80 QBPARM               ! BASIC PARAMETER TABLE B MNEMONICS
 C
+C       FOLLOWING Q STRINGS NOT USED, AS OF 2010.09.03
+C
+        CHARACTER*80 QADPUPA              ! ADDITIONAL BASIC PARAMETERS FOR ADPUPA
+        CHARACTER*80 QAIRCFT              ! ADDITIONAL BASIC PARAMETERS FOR AIRCFT
+        CHARACTER*80 QSATWND              ! ADDITIONAL BASIC PARAMETERS FOR SATWND
+        CHARACTER*80 QAIRCAR              ! ADDITIONAL BASIC PARAMETERS FOR AIRCAR
+C
         REAL*8       R8IDENT(MXMN,MXREPL) ! ARRAY TO RECEIVE DATA REQUESTED IN QIDENT
         REAL*8       R8BPARM(MXMN,MXREPL) ! ARRAY TO RECEIVE DATA REQUESTED IN QBPARM
         REAL*8       R8XPARM(MXMN,MXREPL) ! ARRAY TO RECEIVE DATA REQUESTED IN NEMLIST
 C
         CHARACTER*1 ISBPARM, ISXPARM
-C
 C
 C       A STRING OF MNEMONICS PROVIDED TO UFBINT CAN NOT INVOLVE MORE THAN ONE
 C         "REPLICATION GROUP."  FROM "GUIDE TO WMO TABLE DRIVEN CODE FORMS:"
@@ -194,6 +199,7 @@ C
      +                 'MANL', 'SFC ', ' 128', ' 256', ' 512'/
         REAL*8 R8TMDB(MXREPL), R8TMDP(MXREPL), R8REHU(MXREPL)
         REAL*8 R8WDIR(MXREPL), R8WSPD(MXREPL)
+C
         REAL*8 R8BIG
         DATA R8BIG / 9999999999.0 /
 C
@@ -229,14 +235,11 @@ C
         DIRIN(001:032)   = '                                '
         DIRIN(033:064)   = DIRIN(001:032) 
         DIRIN(065:128)   = DIRIN(001:064)
-        DIRIN(129:256)   = DIRIN(001:128)
-        DIRIN(257:512)   = DIRIN(001:256)
-        DIRIN(513:1024)  = DIRIN(001:512)
 C
         NOFILE(001:064)  = DIRIN(001:064)
-        INFILE(001:1088) = DIRIN(001:1024)//NOFILE(001:064)
+        INFILE(001:192)  = DIRIN(001:128)//NOFILE(001:064)
 C
-        DIROUT(001:1024) = DIRIN(001:1024)
+        DIROUT(001:128)  = DIRIN(001:128)
         PRTFILE(001:192) = DIROUT(001:128)//NOFILE(001:064)
 C
         DIRIN(001:010)   = DEFIN(001:010)       ! INITIALIZE  INPUT DIRECTORY WITH DEFAULT
@@ -257,16 +260,14 @@ C
 C
 C       SET THE HEADER STRINGS (FOR THE DEFAULT MODE - LATER RESET IF
 C         NOT IN DEFAULT MODE)
-C
-C
 C       ================================================================
         DUMPHED(1)(001:028) = ' REC      OBS       REPORT T'
         DUMPHED(1)(029:068) = 'IME   STN WMO     LATI-   LONGI-   STN  '  
-        DUMPHED(1)(069:108) = '  SEQ  VSIG    PRES     PSAL     GEOPOT '
-        DUMPHED(1)(109:148) = '     GP07     FLVL     AIR.T    DEWPT   '
-        DUMPHED(1)(149:188) = ' R.HUM    WIND    WIND      |           '
-        IHDEND = 181
-        DUMPHED(1)(189:200) = '            '
+        DUMPHED(1)(069:108) = '  SEQ  VSIG   PRES    PSAL     GEOPOT   '
+        DUMPHED(1)(109:148) = '   GP07     FLVL   AIR     DEW-  REL    '
+        DUMPHED(1)(149:188) = ' WIND    WIND     |                     '
+        IHDEND = 171
+        DUMPHED(1)(189:200) = '             '
 C
         DUMPHED(1)(201:240) = '                                        '
         DUMPHED(1)(241:280) = DUMPHED(1)(201:240)
@@ -277,11 +278,11 @@ C
 C
         DUMPHED(2)(001:028) = ' TYPE     TYPE      YYYYMMDD'
         DUMPHED(2)(029:068) = 'HHMM  / OTHER ID  TUDE     TUDE    ELEV '
-        DUMPHED(2)(069:108) = '   NO  CODE   (HP=MB)  (HP=MB)   (M2/S2)'
-        DUMPHED(2)(109:148) = '   (M2/S2)    (M)        (C)      (C)   '
-        DUMPHED(2)(149:188) = '  (%)     DIR   SPD(M/S)    |           '
-        IHDEND = 181
-        DUMPHED(2)(189:200) = '            '
+        DUMPHED(2)(069:108) = '   NO  CODE   (MB)    (MB)     (M2/S2)  '
+        DUMPHED(2)(109:148) = ' (M2/S2)    (M)    TEMP   POINT  HUM    '
+        DUMPHED(2)(149:188) = ' DIR    SPD(M/S)  |                     '
+        IHDEND = 171
+        DUMPHED(2)(189:200) = '                  '
 C
         DUMPHED(2)(201:240) = '                                        '
         DUMPHED(2)(241:280) = DUMPHED(2)(201:240)
@@ -291,7 +292,8 @@ C
         DUMPHED(2)(841:1200)= DUMPHED(2)(201:560)
 C       ================================================================
 C
-        XMSG = -9999.9
+        FILL9  = 999.9
+        FILL99 = -9999.90
         XN = '          '
 C
 C       N = IARGC()     ! GNU FORTRAN: NUMBER OF ARGUMENTS PASSED ON THE
@@ -300,8 +302,9 @@ C
         DO N = 1, INKSTN
           INFILES(N) = NOFILE(001:064)
         ENDDO
-C
         INK = 0
+C
+C       WRITE (*,*) 'initialize default configuration'
 C
 C ##############################################################################
 C #     INITIALIZE SELECTION CONFIGURATION AND SET DEFAULTS                    #
@@ -418,7 +421,8 @@ C
           ENDIF
           IF (IDX.EQ. 1)  THEN
 C
-C           PROVIDE NAMES OF INPUT AND OUTPUT DIRECTORIES,
+C           PROVIDE A LIST OF INPUT FILE NAMES (MANDATORY)
+C             AND PREFERRED INPUT AND/OR OUTPUT DIRECTORIES,
 C
             IF (INDEX.EQ.15)  THEN
               READ (CSTRING,'(4X,A128)')  DIRIN(001:128)
@@ -426,13 +430,11 @@ C
             IF (INDEX.EQ.16)  THEN
               READ (CSTRING,'(4X,A128)')  DIROUT(001:128)
             ENDIF
-C
-C           PROVIDE A LIST OF INPUT FILE NAMES (MANDATORY)
-C             AND PREFERRED INPUT AND/OR OUTPUT DIRECTORIES,
-C
             IF (INDEX.EQ.11)  THEN
               INK = INK + 1
               IF (INK.LE.INKSTN)  THEN
+c                 write (*,*)  'ink ',ink,'  inkstn ',inkstn,
+c    +                         'leninmx ',leninmx
                 READ (CSTRING,'(4X,A64)')  INFILES(INK)(1:LENINMX)
                 DO N = 1, LENINMX
                   IF (INFILES(INK)(N:N).EQ.' ')  THEN
@@ -535,10 +537,13 @@ C
                   N = NPT
 C                 IF (N.LE.9)  THEN       ! PUT THIS MNEMONIC IN THE HEADER
                   IF (N.LE.7)  THEN       ! PUT THIS MNEMONIC IN THE HEADER
+C                   DUMPHED(2)(I+1:I+10) = XN(1:10-N)//NEMLIST(M)(1:N)
                     DUMPHED(2)(I+1:I+8)  = XN(1:8-N)//NEMLIST(M)(1:N)
                   ELSE
+C                   DUMPHED(2)(I+1:I+10) =             NEMLIST(M)(1:N)
                     DUMPHED(2)(I+1:I+8)  =             NEMLIST(M)(1:8)
                   ENDIF
+C                 IHDEND = IHDEND + 12
                   IHDEND = IHDEND + 10
                   NPT = 0
                 ENDIF
@@ -760,10 +765,11 @@ C
 C
         WRITE (*,*)
         WRITE (*,*)  'CONFIGURATION FILE HAS BEEN ACCEPTED:'
-C
+
 C       write (*,*)  'files to be read'
 C       write (*,7777)  (infiles(iii),iii=1,10)
 7777    format (10(/,1x,a64))
+
 C
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C +     PRINT THE CONFIGURATION TO THE USER'S SCREEN                           +
@@ -881,6 +887,8 @@ C
         IF (KNK.GT.INK)  EXIT DOFILS
 C
         INFILE = DIRIN(1:INHALE)//INFILES(KNK)
+        write (*,*)  infile
+
 C
 C ##############################################################################
 C #     OPEN THE BUFR DATA FILE, WHICH IS PACKED BINARY                        #
@@ -888,6 +896,7 @@ C ##############################################################################
 C
         OPEN (IIUNIT, FILE=INFILE, FORM='UNFORMATTED' )
         IF (DODIAG.EQ.'y')  THEN
+C         WRITE (IDUNIT,9090)  KNK, INK, INFILE(1:INHALE+LENINMX)
           WRITE (IDUNIT,9090)  KNK, INK, INFILE
 9090      FORMAT (/,1X,'BUFR DATA INPUT FILE ',I5,' OF ',I5,' OPENED ',
      +      A128)
@@ -979,7 +988,7 @@ C         READ THE NEXT BUFR MESSAGE ("RECORD") FROM THE FILE
 C
 c         write (*,*)  'A iiunit ',iiunit,', csubset ',csubset,
 c    +      ', recdate',recdate,', istatus ',istatus 
-C
+
           CALL READNS(IIUNIT,CSUBSET,RECDATE,ISTATUS)
 
 c         write (*,*)  'B iiunit ',iiunit,', csubset ',csubset,
@@ -1119,10 +1128,10 @@ C
 c         write (*,*)  'hello, (re)initialize parameter arrays'
 c
             DO  MZ = 1, MXMN
-                R8IDENT(MZ,1)  = XMSG
+                R8IDENT(MZ,1)  = FILL9
               DO  LZ = 1, MXREPL
-                R8BPARM(MZ,LZ) = XMSG
-                R8XPARM(MZ,LZ) = XMSG
+                R8BPARM(MZ,LZ) = FILL9
+                R8XPARM(MZ,LZ) = FILL9
               ENDDO
             ENDDO
 C
@@ -1164,14 +1173,10 @@ C                 4         5          7     8      9    10
 C
               IF (R8IDENT(ITOSS,Z).GT.R8BIG)  GO TO 290 ! MISSING VALUE
             ENDDO
-C
             R8CLAT = R8IDENT(4,Z)
             R8CLON = R8IDENT(5,Z)
 C
             IF (LLDO.EQ.'y')  THEN
-C
-C
-C
               CALL CKLL (RECORDS,RECREPS,R8CLAT,R8CLON,LATS,LATN,
      +                   LONW,LONE,LLWRAP,IDUNIT,DODIAG,ACK)
               IF (ACK.EQ.'n')  GO TO 290        ! REJECT UNINTERESTING REPORT
@@ -1189,21 +1194,10 @@ C
 C           IF (R8IDENT(2,Z).GT.R8BIG)  R8IDENT(2,Z) = 999.
 C           I8WMOS = R8IDENT(2,Z)               ! DO NOT NEED THIS
 C
-            CALL VALIDCH (R8IDENT(3,Z),8,ACK)   ! IS STATION ID (MNEMONIC RPID) CHARACTER?
-            IF (ACK.EQ.'y')  THEN
-              WRITE (A8RPID,9125)  R8IDENT(3,Z)   ! R8IDENT(3,Z) IS CHARACTER, WITH A
-C                                                 ! LEFT-JUSTIFIED NUMBER OR STRING
-9125          FORMAT (A8)
-            ELSE
-C                                       ! IT'S NOT THE EXPECTED SIMPLE CHARACTER STRING, SO
-              A8RPID(1:8) = '        '  ! JUST BLANK IT OUT, PER STEVE'S REQUEST 2011.07.06
-            ENDIF
+            WRITE (A8RPID,9125)  R8IDENT(3,Z)   ! R8IDENT(3,Z) IS CHARACTER
+9125        FORMAT (A8)                         ! AND THIS ACTION YIELDS A 
+C                                               ! LEFT-JUSTIFIED NUMBER OR STRING
 C
-C           IF (OBSTYPE.EQ.'ACARS   ')  THEN
-C             A8RPID(1:8) = CHSTR(1:8)  ! IT'S NOT THE EXPECTED SIMPLE CHARACTER STRING, SO
-C             A8RPID(1:8) = '        '  ! JUST BLANK IT OUT, PER STEVE'S REQUEST 2011.07.06
-C           ENDIF
-C   
 c           write (*,*)  'hello again bone-head'
 c           write (*,*)  'a8rpid .',a8rpid,'.'
 C
@@ -1276,52 +1270,48 @@ C           IF (DEFAULT.EQ.'y')  THEN   ! TURNED OFF 20101129, PER DOUG'S SUGGES
               CALL UFBINT (IIUNIT,R8BPARM,MXMN,MXREPL,NREPL,QBPARM)
               IF (NREPL.GT.0.AND.NREPL.LE.MXREPL)  THEN
                 DO NL = 1, NREPL
-                  IF (R8BPARM(1,NL).GT.R8BIG)   R8BPARM(1,NL) = XMSG
+                  IF (R8BPARM(1,NL).GT.R8BIG)   R8BPARM(1,NL) = 999990.0
                   R8PRLC(NL) = R8BPARM(1,NL)
 C 
-                  IF (R8BPARM(2,NL).GT.R8BIG)   R8BPARM(2,NL) = XMSG
+                  IF (R8BPARM(2,NL).GT.R8BIG)   R8BPARM(2,NL) = 999990.0
                   R8PSAL(NL) = R8BPARM(2,NL)
 C 
-                  IF (R8BPARM(3,NL).GT.R8BIG)   R8BPARM(3,NL)  = XMSG
+                  IF (R8BPARM(3,NL).GT.R8BIG)   R8BPARM(3,NL)  = FILL9
                   R8GP10(NL) = R8BPARM(3,NL)
 C
-                  IF (R8BPARM(4,NL).GT.R8BIG)   R8BPARM(4,NL)  = XMSG
+                  IF (R8BPARM(4,NL).GT.R8BIG)   R8BPARM(4,NL)  = FILL9
                   R8GP07(NL) = R8BPARM(4,NL)
 C
-                  IF (R8BPARM(5,NL).GT.R8BIG)   R8BPARM(5,NL)  = XMSG
+                  IF (R8BPARM(5,NL).GT.R8BIG)   R8BPARM(5,NL)  = FILL9
                   R8FLVL(NL) = R8BPARM(5,NL)
 C
-                  IF (R8BPARM(6,NL).GT.R8BIG)   R8BPARM(6,NL)  = XMSG
+                  IF (R8BPARM(6,NL).GT.R8BIG)   R8BPARM(6,NL)  = FILL9
                   R8VSIG(NL) = R8BPARM(6,NL)
 C
-                  IF (R8BPARM(7,NL).GT.R8BIG)   R8BPARM(7,NL)  = XMSG
+                  IF (R8BPARM(7,NL).GT.R8BIG)   R8BPARM(7,NL)  = FILL9
                   R8WDIR(NL) = R8BPARM(7,NL)
 C
-                  IF (R8BPARM(8,NL).GT.R8BIG)   R8BPARM(8,NL)  = XMSG
+                  IF (R8BPARM(8,NL).GT.R8BIG)   R8BPARM(8,NL)  = FILL9
                   R8WSPD(NL) = R8BPARM(8,NL)
 C
-                  IF (R8BPARM(9,NL).GT.R8BIG)   R8BPARM(9,NL)  = XMSG
+                  IF (R8BPARM(9,NL).GT.R8BIG)   R8BPARM(9,NL)  = FILL9
                   R8TMDB(NL) = R8BPARM(9,NL)
 C  
-                  IF (R8BPARM(10,NL).GT.R8BIG)  R8BPARM(10,NL) = XMSG
+                  IF (R8BPARM(10,NL).GT.R8BIG)  R8BPARM(10,NL) = FILL9
                   R8TMDP(NL) = R8BPARM(10,NL)
 C  
-                  IF (R8BPARM(11,NL).GT.R8BIG)  R8BPARM(11,NL) = XMSG
+                  IF (R8BPARM(11,NL).GT.R8BIG)  R8BPARM(11,NL) = FILL9
                   R8REHU(NL) = R8BPARM(11,NL)
 C
-C                 IF (R8BPARM(12,NL).GT.R8BIG)  R8BPARM(12,NL) = XMSG
+C                 IF (R8BPARM(12,NL).GT.R8BIG)  R8BPARM(12,NL) = FILL9
 C                 R8   (NL)  = R8BPARM(12,NL)
 C             
 C ++++++++++  
 C           
 C                 DO A FEW CONVERSIONS, MAINLY UNITS; AND MAPPINGS
 C
-                  IF (R8PRLC(NL).NE.XMSG)  THEN
-                    R8PRLC(NL) = R8PRLC(NL) / 100.
-                  ENDIF
-                  IF (R8PSAL(NL).NE.XMSG)  THEN
-                    R8PSAL(NL) = R8PSAL(NL) / 100.
-                  ENDIF
+                  R8PRLC(NL) = R8PRLC(NL) / 100.
+                  R8PSAL(NL) = R8PSAL(NL) / 100.
 C
 C                 NOTE: THE VSIG CODE IS NOT USED CONSISTENTLY, NOTABLY
 C                   FOR THE WIND.  THE FOLLOWING TRIES TO MAKE IT BETTER
@@ -1338,7 +1328,7 @@ C
                     IF (R8VSIG(NL).NE.RVSIG(IV))  CYCLE
                     A8VSIG(NL) = VSIGCODE(IV)      
                     IF (RECTYPE.EQ.'ADPUPA')  THEN
-                      IF (R8GP07(NL).NE.XMSG)  THEN
+                      IF (R8GP07(NL).NE.FILL9)  THEN
                         A8VSIG(NL) = 'WXHT'
                       ENDIF
                     ENDIF
@@ -1350,13 +1340,13 @@ C
 C                   WE CAN CONVERT TEMPERATURES IN THE BASIC PARAMETERS, 
 C                     BUT WILL MISS THOSE IN THE EXTRA PARAMETERS
 C
-                    IF (R8TMDB(NL).NE.XMSG)  THEN
+                    IF (R8TMDB(NL).NE.FILL9)  THEN
                       R8TMDB(NL) = R8TMDB(NL) - 273.16
                     ENDIF
-                    IF (R8TMDP(NL).NE.XMSG)  THEN
+                    IF (R8TMDP(NL).NE.FILL9)  THEN
                       R8TMDP(NL) = R8TMDP(NL) - 273.16
                     ENDIF
-C                   IF (R8    (NL).NE.XMSG)  THEN
+C                   IF (R8    (NL).NE.FILL9)  THEN
 C                     R8    (NL) = R8    (NL) - 273.16
 C                   ENDIF
                     ISBPARM = 'y'
@@ -1384,7 +1374,7 @@ C
             IF (NML.GT.0)  THEN
               DO KICK = 1, 100
                 DO MICK = 1, MRREPL
-                  EXTRA(KICK,MICK) = XMSG
+                  EXTRA(KICK,MICK) = FILL99
                 ENDDO
               ENDDO
               DO MM = 1, NML
@@ -1401,19 +1391,27 @@ C
                 IF (NXREPL.GT.0.AND.NXREPL.LE.MXREPL)  THEN
                   DO NL = 1, NXREPL
                     HAVACID = 'n'
-C                   IF (USEACID.EQ.'y')  THEN
-C                     IF (NEMLIST(MM)(1:4).EQ.'ACID')  THEN
-C                       HAVACID = 'y'   ! PARAMETER ACID AVAILABLE 
+                    IF (USEACID.EQ.'y')  THEN
+                      IF (NEMLIST(MM)(1:4).EQ.'ACID')  THEN
+                        HAVACID = 'y'   ! PARAMETER ACID AVAILABLE 
 C                                       !   TO REPLACE MISSING A8RPID
-C                     ENDIF
-C                   ENDIF
-                    EXTRA(MM,NL) = R8XPARM(1,NL)    ! MOVED FROM ABOVE, 20101129, PER DOUG'S SUGGESTION
+                      ENDIF
+                    ENDIF
                     WRITE (CHSTR(1:8),9265)  R8XPARM(1,NL)
 9265                FORMAT (A8)
                     CALL VALIDCH (CHSTR,8,ACK)   ! IS PARAMETER CHARACTER?
                     IF (ACK.EQ.'n')  THEN        ! PARAMETER IS NUMERIC
-                      IF (R8XPARM(1,NL).GT.R8BIG) R8XPARM(1,NL) = XMSG
+                      IF (R8XPARM(1,NL).GT.R8BIG) R8XPARM(1,NL) = FILL99
+                    ELSE                         ! PARAMETER IS CHARACTER
+                      IF (USEACID.EQ.'y'.AND.HAVACID.EQ.'y')  THEN
+                        IF (OBSTYPE.EQ.'ACARS   ')  THEN
+                          A8RPID(1:8) = CHSTR(1:8)
+                        ENDIF
+                      ENDIF
                     ENDIF
+C           write (*,*)  'hello again bone-head [0] :: ', R8BPARM(MM,NL)
+C           write (*,*)  'R8XPARM (',NL,') :: ',R8XPARM(1,NL),'.'
+                    EXTRA(MM,NL) = R8XPARM(1,NL)    ! MOVED FROM ABOVE, 20101129, PER DOUG'S SUGGESTION
                     IF (DODIAG.EQ.'y')  THEN
                       WRITE (*,*)  'NREPL ',NREPL, ', MM ',MM,
      +                 ', NL ',NL, ', R8XPARM(1,NL) ',R8XPARM(1,NL),
@@ -1434,34 +1432,17 @@ C
             ENDDO
 C           
             IDOHDR = 'n'
-C           IF (RECTYPE.EQ.'ADPUPA')   IDOHDR = 'y'
+C            IF (RECTYPE.EQ.'ADPUPA')   IDOHDR = 'y'
             IF (REPSACC.EQ.1)          IDOHDR = 'y'
-C           IF (MOD(REPSACC,I30).EQ.1)  IDOHDR = 'y'
-C
+C            IF (MOD(REPSACC,I30).EQ.1)  IDOHDR = 'y'
+C           
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C +         PRINT THIS REPORT, UNLESS THERE ARE NO MEASURED DATA VALUES        +
+C +         PRINT THIS REPORT                                                  +
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-C           2010.07.01 - LET'S NOT RETRIEVE OR SHOW THE RECORD DATE
-C
-            IEMPTY = 0
-            IEQUIT = 10        ! THIS NUMBER OF MEASURED VALUES WILL NEED TO BE DYNAMIC
-            DO IEE = 1, IEQUIT
-              IF (R8BPARM(IEE,NREPL).LE.XMSG+.1)  THEN    ! APPLIES TO PRESSURE VARIABLES AND BIG MISSING
-                IEMPTY = IEMPTY + 1
-                CYCLE
-              ENDIF
-              IF (R8BPARM(IEE,NREPL).LE.XMSG+.1)  THEN
-                IEMPTY = IEMPTY + 1
-              ENDIF
-            ENDDO
-            IF (IEMPTY.GE.IEQUIT)  GO TO 290
-C
-            REPSACC = REPSACC + 1
 C           
             IDOH = 'y'
             DO NL = 1, NREPL
-              IF (R8PRLC(NL).NE.XMSG)  THEN
+              IF (R8PRLC(NL).NE.9999.9)  THEN
                 IF (RECTYPE.NE.'AIRCFT')  THEN
                   IF (PLEVDO.EQ.'y')  THEN
                     IF (R8PRLC(NL).GT.PLEVL)  CYCLE
@@ -1490,10 +1471,10 @@ C
      +          1X,A6,1X,    2X,A8,
      +          2X,I10,A2,2X,A8,2X,F7.2,2X,F7.2,2X,I5,
      +          2X,I4,2X,A4,
-     +          2X,F7.1,2X,F7.1,
+     +          2X,F6.1,2X,F6.1,
      +          2X,F8.1,2X,F8.1,2X,F8.1,
-     +          2X,F7.1,2X,F7.1,2X,F7.1,
-     +          2X,F7.1,2X,F7.1,4X,'|',
+     +          2X,F5.1,2X,F5.1,2X,F5.1,
+     +          2X,F6.1,2X,F6.1,4X,'|',
      +          2X,100F10.2)          ! WAS 12.2
               ENDIF
 C           
@@ -1538,7 +1519,7 @@ C
 C         
           DO KICK = 1, 100
             DO MICK = 1, MRREPL
-              EXTRA(KICK,MICK) = XMSG
+              EXTRA(KICK,MICK) = FILL99
             ENDDO
           ENDDO
         ENDDO DORECS            ! END OF READING A BUFR RECORD (MESSAGE)
@@ -1552,24 +1533,22 @@ C
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C +     PRINT THE CONFIGURATION AT THE END OF THE PRINTOUT ("DUMP") FILE       +
 C ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-C       DEACTIVATED 2011.05.13 TO AVOID CONFUSING SPREADSHEET USAGE
-
-C       WRITE (IPUNIT,9880)  CONFILE
+C       
+C        WRITE (IPUNIT,9880)  CONFILE
 9880    FORMAT (/,1X,'CONFIGURATION FILE ',A32,
      +          /,3X,'CHOICES FOLLOW')
-C       WRITE (IPUNIT,9070)
-C    +      IRECDO, NREC, RECGET(1),  RECGET(2),  RECGET(3),  RECGET(4),
-C    +      IOBSDO, NOBS, OBSGET(1),  OBSGET(2),  OBSGET(3),  OBSGET(4),
-C    +      DATEDO, IBEGDAT, IENDDAT,
-C    +      NMDO,  NML, (NEMLIST(NM),NM=1,20),
-C    +      LLDO, LATS, LATN, LONW, LONE,
-C    +      LLRDO, RADR,
-C    +      NIR, LATR(1), LONR(1), LATR(2), LONR(2), LATR(3), LONR(3),
-C    +      IELEVDO, IELEVL, IELEVH,
-C    +       PLEVDO,  PLEVL,  PLEVH,
-C    +      WMODO, NWMO, (WMOLIST(NZ),NZ=1,20),
-C    +      WBBDO, NWBB, (WBBLIST(NZ),NZ=1,10)
+C        WRITE (IPUNIT,9070)
+C     +      IRECDO, NREC, RECGET(1),  RECGET(2),  RECGET(3),  RECGET(4),
+C     +      IOBSDO, NOBS, OBSGET(1),  OBSGET(2),  OBSGET(3),  OBSGET(4),
+C     +      DATEDO, IBEGDAT, IENDDAT,
+C     +      NMDO,  NML, (NEMLIST(NM),NM=1,20),
+C     +      LLDO, LATS, LATN, LONW, LONE,
+C     +      LLRDO, RADR,
+C     +      NIR, LATR(1), LONR(1), LATR(2), LONR(2), LATR(3), LONR(3),
+C     +      IELEVDO, IELEVL, IELEVH,
+C     +       PLEVDO,  PLEVL,  PLEVH,
+C     +      WMODO, NWMO, (WMOLIST(NZ),NZ=1,20),
+C     +      WBBDO, NWBB, (WBBLIST(NZ),NZ=1,10)
 C
         IF (DODIAG.EQ.'y')  THEN
           WRITE (IDUNIT,9890)  INFILE, RECORDS, RECSREJ, RECSACC,
@@ -1585,8 +1564,8 @@ C
      +              5X,'REPORTS REJECTED ',I12)
 C
         ENDIF
-C       WRITE (IPUNIT,9890)  INFILE, RECORDS, RECSREJ, RECSACC,
-C    +     REPORTS, REPSACC, REPSREJ
+C        WRITE (IPUNIT,9890)  INFILE, RECORDS, RECSREJ, RECSACC,
+C     +     REPORTS, REPSACC, REPSREJ
         CLOSE   ( IPUNIT )
 C
 C ##############################################################################
@@ -1956,7 +1935,7 @@ C
         SAVE
         ACK = 'n'
         DO N = 1, NWBB
-          IF (A8RPID(1:2).EQ.WBBLIST(N)(1:2))  THEN
+          IF (A8RPID(4:5).EQ.WBBLIST(N)(1:2))  THEN
             ACK = 'y'
             EXIT
           ENDIF
