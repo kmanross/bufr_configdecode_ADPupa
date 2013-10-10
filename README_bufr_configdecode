@@ -1,6 +1,8 @@
                                                                 Doug Schuster
                                                                 Gregg Walters
                                                                 September 10, 2010
+                                                                Updated 09 October 2013
+                                                                Kevin Manross
 
 USING THE BUFR DECODING SOFTWARE
 
@@ -21,8 +23,8 @@ Here is a list of the bufrdecode sub-directories and their descriptions.
 
     exe         Where the install places the decoder executables.
 
-    grabbufr    Has a conversion to make BUFR files readable on
-                  little_endian machines, such as linux machines.
+    -grabbufr-  No longer needed
+                  
 
     install     Has a shell script for compiling and installing BUFR
                   decoders.
@@ -65,9 +67,7 @@ All directories (except "textobs") contain their own README files.
 
     -Place your downloaded files, which have the naming structure "gdasupaobs.yyyymmdd.tar.gz",
      in the bufrobs directory.
-    -Edit the "exe/convert.csh" script to reflect the proper directory path to the decoder software
-     "set procdir=$home/bufrdecode", and the correct platform "set CPLAT=linux".
-    -Execute the "exe/convert.csh" script.
+    -Run the "exe/preprocess.csh" script to untar files in bufrobs directory.
     -All individual BUFR files are extracted and placed in the "BUFROBS" directory. 
     -File names must appear in the following format to proceed further:
           gdas.adpupa.tHHz.YYYYMMDD.bufr          (radiosondes and pibals)
@@ -99,12 +99,12 @@ All directories (except "textobs") contain their own README files.
 Downloading the RDADB ds351.0 BUFR data files is supported from the "Data
 Access" tab near the top of the ds351.0 home page
 
-    http://dss.ucar.edu/datasets/ds351.0/ 
+    http://rda.ucar.edu/datasets/ds351.0/ 
 
 RDA ds351.0 file names have the form: gdasupaobs.yyyymmdd.tar.gz. Individual
 BUFR files must be extracted from the tar.gz files for use with the decoders. 
 This can be done after files are copied to the "bufrobs" directory, by editing
 and running the "exe/preprocess.csh" shell script.
 
-Linux users must preprocess all BUFR files using the "convert.csh" script, or
-the "grabbufr" tool on individual BUFR files.
+Linux users NO LONGER NEED to preprocess BUFR files using the "grabbufr" tool. 
+The included BUFRLIB (v10.2.3 or greater) handles endian-ness internally.
