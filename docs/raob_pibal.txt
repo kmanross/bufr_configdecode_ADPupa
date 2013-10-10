@@ -1,0 +1,22 @@
+**Reports lacking pressure levels are ommited**
+
+Raob_Pibal Header Definitions:
+
+
+DATACAT = BUFR Data Category
+RATP = Radiosonde Type
+RPID = Report Identifier
+YEAR = YEAR
+MNTH = MONTH
+DAY = DAY
+HOUR = HOUR
+MIN = MIN
+RCMI = Receipt Minute
+LAT = Latitude (Deg)
+LON = Longitude (Deg)
+TMDB = Temperature/Dry Bulb Temperature (K)
+TMDP = Dew-Point Temperature (K)
+PRLC = Pressure (Pa)
+WDIR = Wind Direction (Degree True)
+WSPD = Wind Speed (m/s)
+
