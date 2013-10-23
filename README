@@ -72,7 +72,8 @@ All directories (except "textobs") contain their own README files.
 
 2.  PREPARING THE INPUT FILES:
 
-    -Place your downloaded files, which have the naming structure "gdasupaobs.yyyymmdd.tar.gz",
+    -Place your downloaded files, which have the naming structure 
+               "gdasupaobs.yyyymmdd.tar.gz",
      in the bufrobs directory.
     -Run the "exe/preprocess.csh" script to untar files in bufrobs directory.
     -All individual BUFR files are extracted and placed in the "BUFROBS" directory. 
